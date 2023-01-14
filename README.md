@@ -2,14 +2,7 @@
 
 **EN COURS**
 
-issue : https://github.com/callstack/react-native-paper/issues/2553
-
-https://reactnavigation.org/blog/2020/01/29/using-react-navigation-5-with-react-native-paper/#theming
-
-https://stackoverflow.com/questions/75047740/react-native-paper-theming-fails-to-apply/75102572#75102572
-
 ## Installation : React Native
-
 
 
 ```
@@ -220,35 +213,35 @@ Parfait ! Commençons par éditer les fichiers de la sorte :
 * `themeSlice.js` :
 
   ```
-import { createSlice, current } from '@reduxjs/toolkit'
-import { MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
+  import { createSlice, current } from '@reduxjs/toolkit'
+  import { MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 
 
-const lightTheme = {
+  const lightTheme = {
   ...MD3LightTheme,
-};
+  };
 
-const darkTheme = {
+  const darkTheme = {
   ...MD3DarkTheme,
-};
+  };
 
-export const themeSlice = createSlice({
+  export const themeSlice = createSlice({
   name: 'counter',
   initialState: lightTheme,
   reducers: {
-    switchTheme: (state, action) => {
+      switchTheme: (state, action) => {
       if (action.payload === 'light'){
-        return lightTheme
+          return lightTheme
       } else {
-        return darkTheme
+          return darkTheme
       }
-    },
+      },
   }
-})
+  })
 
-export const { switchTheme } = themeSlice.actions
+  export const { switchTheme } = themeSlice.actions
 
-export default themeSlice.reducer
+  export default themeSlice.reducer
   ```
 
 * `SwitchPaper.js` :
@@ -401,7 +394,5 @@ export default Main;
 Pour le moment, nous devons passer la couleur du theme en fond ... à vérifier avec React Native Paper si cette façon de faire est correcte. 
 
 ## Fonts
-
-https://blog.logrocket.com/adding-custom-fonts-react-native/
 
 Redux et l'immutabilité : https://daveceddia.com/react-redux-immutability-guide/#redux-update-an-object

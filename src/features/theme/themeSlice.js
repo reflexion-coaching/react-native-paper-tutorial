@@ -1,12 +1,28 @@
-import { createSlice, current } from '@reduxjs/toolkit'
-import { MD3LightTheme, MD3DarkTheme, configureFonts } from 'react-native-paper';
+import { createSlice } from '@reduxjs/toolkit'
+import { MD3LightTheme, MD3DarkTheme, adaptNavigationTheme } from 'react-native-paper';
+import { DarkTheme as NavigationDarkTheme, DefaultTheme as NavigationDefaultTheme } from '@react-navigation/native';
+
+const { LightTheme, DarkTheme } = adaptNavigationTheme({
+  reactNavigationLight: NavigationDefaultTheme,
+  reactNavigationDark: NavigationDarkTheme,
+});
 
 const lightTheme = {
   ...MD3LightTheme,
+  ...LightTheme,
+  colors: {
+    ...MD3LightTheme.colors,
+    ...LightTheme.colors,
+  },
 };
 
 const darkTheme = {
   ...MD3DarkTheme,
+  ...DarkTheme,
+  colors: {
+    ...MD3DarkTheme.colors,
+    ...DarkTheme.colors,
+  },
   myOwnProperty: true,
   fonts: {
     ...MD3DarkTheme.fonts,
@@ -21,15 +37,13 @@ const darkTheme = {
 };
 
 export const themeSlice = createSlice({
-  name: 'counter',
+  name: 'theme',
   initialState: lightTheme,
   reducers: {
     switchTheme: (state, action) => {
       if (action.payload === 'light') {
-        // console.log('light theme : labelLarge', current(state.fonts.labelLarge))
         return lightTheme
       } else {
-        console.log('dark theme : labelLarge', current(state))
         return darkTheme
       }
     },

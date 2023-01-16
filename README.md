@@ -165,7 +165,7 @@ export default function App() {
 
 Excellent ! Un bouton normé par Paper apparaît.
 
-## Redux ToolKit
+### Redux ToolKit
 
 Installons un petit store Redux afin de contrôler le theme général de l'application. L'objectif est de pouvoir switcher entre un light et dark theme.
 
@@ -226,7 +226,7 @@ Parfait ! Commençons par éditer les fichiers de la sorte :
   };
 
   export const themeSlice = createSlice({
-  name: 'counter',
+  name: 'theme',
   initialState: lightTheme,
   reducers: {
       switchTheme: (state, action) => {
@@ -395,4 +395,339 @@ Pour le moment, nous devons passer la couleur du theme en fond ... à vérifier 
 
 ## Fonts
 
-Redux et l'immutabilité : https://daveceddia.com/react-redux-immutability-guide/#redux-update-an-object
+React Native Paper autorise les développeurs à modifier la polive d'écriture. Le lien vers la documentation sur la police d'écriture est : https://callstack.github.io/react-native-paper/fonts.html
+
+La documentation officielle préconise l'utilisation de la fonction `configureFonts` afin de modifier la police d'un niveau d'écriture. Paper sépare les polices en plusieurs niveaux d'écriture : *labelLarge, bodySmall, titleSmall, ...*. Cependant, il semblerait que Redux ne supporte pas cette fonction car cette dernière casse la règle d'immutabilité chère à Redux (https://daveceddia.com/react-redux-immutability-guide/). J'ai posé la question sur stackoverflow (https://stackoverflow.com/questions/75112911/react-native-paper-redux-toolkit-redux-doesnt-track-change-in-fonts-between) mais actuellement, personne n'y a répondu. 
+
+Pour modifier la police d'un de nos deux thèmes, nous allons utiliser l'opérateur **... spread**. L'utilisation de cette opérateur est d'ailleurs très bien documenté dans l'article sur l'immutabilité de Redux. Le code de `themeSlice.js` devient :
+
+```
+import { createSlice, current } from '@reduxjs/toolkit'
+import { MD3LightTheme, MD3DarkTheme, configureFonts } from 'react-native-paper';
+
+const lightTheme = {
+  ...MD3LightTheme,
+};
+
+const darkTheme = {
+  ...MD3DarkTheme,
+  myOwnProperty: true,
+  fonts: {
+    ...MD3DarkTheme.fonts,
+    "labelLarge": {
+      fontFamily: "System",
+      letterSpacing: 0.5,
+      fontWeight: "500",
+      lineHeight: 16,
+      fontSize: 11
+    }
+  }
+};
+
+export const themeSlice = createSlice({
+  name: 'theme',
+  initialState: lightTheme,
+  reducers: {
+    switchTheme: (state, action) => {
+      if (action.payload === 'light') {
+        return lightTheme
+      } else {
+        return darkTheme
+      }
+    },
+  }
+})
+
+export const { switchTheme } = themeSlice.actions
+
+export default themeSlice.reducer
+```
+
+Super ! Le code fonctionne : la taille du label *Press me* est plus petite avec le dark theme que le light theme. 
+
+## React Navigation 
+
+Pour contrôler la navigation à travers l'application, React Native Paper recommande l'utilisation de la librairie React Navigation. La documentation propose deux tutoriels d'explications. Adaptons les deux à notre exemple.
+
+### Theming with React Navigation
+
+Le lien vers ce tutoriel est : https://callstack.github.io/react-native-paper/theming-with-react-navigation.html
+
+L'objectif est de combiner React Paper et Navigation pour offrir une application navigable avec plusieurs thèmes :) 
+
+Commençons par installer les librairies nécessaires : 
+
+```
+$ npx expo install react-native-screens react-native-safe-area-context
+
+$ npm install @react-navigation/native
+
+$ npm install @react-navigation/stack
+```
+
+A la fois React Navigation et Paper proposent des utilitaires pour changer les thèmes de l'application. Pour que les thèmes soient aux normes de Material Design 3, nous allons utiliser `adaptNavigationTheme` de React Navigation pour adapter les thèmes de navigation à ceux de Paper. 
+
+Commençons par créer un dossier `src/screens` qui contiendra le code de nos différents écrans :
+
+```
+$ mkdir src/screens
+
+$ touch src/screens/HomeScreen.js
+
+$ touch src/screens/DetailsScreens.js
+```
+
+`HomeScreen.js` contiendra simplement :
+
+```
+import { TouchableOpacity } from 'react-native';
+import { Card, Text } from 'react-native-paper';
+
+const title = "Titre 1"
+
+const content = "Content of Card 1"
+
+const HomeScreen = ({ navigation }) => (
+    <TouchableOpacity
+      onPress={() =>
+        navigation?.push('Details', {
+          title,
+          content,
+        })
+      }
+    >
+      <Card>
+        <Card.Content>
+          <Text variant="titleLarge">{title}</Text>
+          <Text variant="bodyMedium">{content}</Text>
+        </Card.Content>
+      </Card>
+      
+    </TouchableOpacity>
+  );
+
+export default HomeScreen;
+```
+
+`DetailsScreen.js` héritera du titre et du contenu passé dans le navigateur :
+
+```
+import { List } from 'react-native-paper'
+
+const DetailsScreen = (props) => {
+    const { title, content } = props?.route?.params;
+    return (
+        <List.Section>
+            <List.Subheader>{title}</List.Subheader>
+            <List.Item title={content} />
+        </List.Section>
+    );
+};
+
+export default DetailsScreen;
+```
+
+Dans le fichier `Main.js`, commentons ce que nous avons fait jusqu'ici et enveloppons l'application dans le navigateur :
+
+```
+import { StyleSheet, View } from 'react-native';
+import { Provider as PaperProvider } from 'react-native-paper';
+import ThemeSwitch from '../theme/SwitchPaper'
+import ButtonPaper from '../button/ButtonPaper'
+import { useSelector } from 'react-redux'
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import HomeScreen from '../../screens/HomeScreen';
+import DetailsScreen from '../../screens/DetailsScreens';
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+});
+
+const Stack = createStackNavigator();
+
+function Main() {
+
+    const theme = useSelector(state => state.theme)
+
+    return (
+        <PaperProvider theme={theme}>
+            <NavigationContainer>
+                <Stack.Navigator initialRouteName="Home">
+                    <Stack.Screen name="Home" component={HomeScreen} />
+                    <Stack.Screen name="Details" component={DetailsScreen} />
+                </Stack.Navigator>
+            </NavigationContainer>
+            {/*
+            <View style={{...styles.container, backgroundColor: theme.colors.background}}>
+                <ButtonPaper />
+                <ThemeSwitch />
+            </View>
+            */}
+        </PaperProvider>
+
+    );
+}
+
+export default Main;
+```
+
+La navigation est maintenant mise en place :) Nous allons maintenant combiner les thèmes de React Navigation et Paper. La documentation propose l'utilisation de la libraire `deepmerge` afin de combiner les thèmes des deux librairies. Etant donné les difficultés précédentes avec l'immutabilité, je propose que nous utilisons à nouveau l'opérateur **`... spread`**. 
+
+Modifions d'abord `themeSlice.js` :
+
+```
+import { createSlice } from '@reduxjs/toolkit'
+import { MD3LightTheme, MD3DarkTheme, adaptNavigationTheme } from 'react-native-paper';
+import { DarkTheme as NavigationDarkTheme, DefaultTheme as NavigationDefaultTheme } from '@react-navigation/native';
+
+const { LightTheme, DarkTheme } = adaptNavigationTheme({
+  reactNavigationLight: NavigationDefaultTheme,
+  reactNavigationDark: NavigationDarkTheme,
+});
+
+const lightTheme = {
+  ...MD3LightTheme,
+  ...LightTheme,
+  colors: {
+    ...MD3LightTheme.colors,
+    ...LightTheme.colors,
+  },
+};
+
+const darkTheme = {
+  ...MD3DarkTheme,
+  ...DarkTheme,
+  colors: {
+    ...MD3DarkTheme.colors,
+    ...DarkTheme.colors,
+  },
+  myOwnProperty: true,
+  fonts: {
+    ...MD3DarkTheme.fonts,
+    "labelLarge": {
+      fontFamily: "System",
+      letterSpacing: 0.5,
+      fontWeight: "500",
+      lineHeight: 16,
+      fontSize: 11
+    }
+  }
+};
+
+export const themeSlice = createSlice({
+  name: 'theme',
+  initialState: lightTheme,
+  reducers: {
+    switchTheme: (state, action) => {
+      if (action.payload === 'light') {
+        return lightTheme
+      } else {
+        return darkTheme
+      }
+    },
+  }
+})
+
+export const { switchTheme } = themeSlice.actions
+
+export default themeSlice.reducer
+```
+
+Super : les deux thèmes de React Navigation et Paper sont combinés en utilisant du pur JavaScript. Bien créons un dossier et un fichier `src/header/Header.js`
+
+```
+$ mkdir src/header
+
+$ touch src/header/Header.js
+```
+
+et écrivons le code pour une jolie `Appbar` :
+
+```
+import { Appbar } from 'react-native-paper';
+import { useRoute } from '@react-navigation/native';
+import { useSelector } from 'react-redux'
+import ThemeSwitch from '../features/theme/SwitchPaper';
+
+const Header = ({ navigation, back }) => {
+    const route = useRoute();
+    const theme = useSelector(state => state.theme)
+    return (
+        <Appbar.Header
+            theme={{
+                colors: {
+                    primary: theme?.colors.surface,
+                },
+            }}
+        >
+            {back ? <Appbar.BackAction onPress={navigation.goBack} /> : null}
+            <Appbar.Content title={route.name} />
+            <ThemeSwitch />
+        </Appbar.Header>
+    );
+};
+
+export default Header;
+```
+
+Parfait ! Il ne reste plus qu'à importer le composant dans `Main.js` :
+
+```
+import { StyleSheet, View } from 'react-native';
+import { Provider as PaperProvider } from 'react-native-paper';
+import ThemeSwitch from '../theme/SwitchPaper'
+import ButtonPaper from '../button/ButtonPaper'
+import { useSelector } from 'react-redux'
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import HomeScreen from '../../screens/HomeScreen';
+import DetailsScreen from '../../screens/DetailsScreens';
+import Header from '../../header/Header';
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+});
+
+const Stack = createStackNavigator();
+
+function Main() {
+
+    const theme = useSelector(state => state.theme)
+
+    return (
+        <PaperProvider theme={theme}>
+            <NavigationContainer theme={theme}>
+                <Stack.Navigator 
+                    initialRouteName="Home"
+                    screenOptions={{
+                        header: (props) => <Header {... props} />
+                    }}>
+                    <Stack.Screen name="Home" component={HomeScreen} />
+                    <Stack.Screen name="Details" component={DetailsScreen} />
+                </Stack.Navigator>
+            </NavigationContainer>
+            {/*
+            <View style={{...styles.container, backgroundColor: theme.colors.background}}>
+                <ButtonPaper />
+                <ThemeSwitch />
+            </View>
+            */}
+        </PaperProvider>
+
+    );
+}
+
+export default Main;
+```
+
+Excellent !! Le code fonctionne à merveille :) CQFD ! **Nous avons maintenant une application navigable avec des thèmes customizables à souhait et qui respecte les conseils de design de Material Design 3 !**
+

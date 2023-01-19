@@ -1,23 +1,12 @@
-import { StyleSheet, View } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
-import ThemeSwitch from '../theme/SwitchPaper'
-import ButtonPaper from '../button/ButtonPaper'
 import { useSelector } from 'react-redux'
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import HomeScreen from '../../screens/HomeScreen';
-import DetailsScreen from '../../screens/DetailsScreens';
-import Header from '../../header/Header';
+import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
+import ThemeScreen from '../../screens/ThemingScreens';
+import CalendarScreen from '../../screens/CalendarScreen';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-});
-
-const Stack = createStackNavigator();
+const Tab = createMaterialBottomTabNavigator();
 
 function Main() {
 
@@ -26,21 +15,22 @@ function Main() {
     return (
         <PaperProvider theme={theme}>
             <NavigationContainer theme={theme}>
-                <Stack.Navigator 
-                    initialRouteName="Home"
-                    screenOptions={{
-                        header: (props) => <Header {... props} />
-                    }}>
-                    <Stack.Screen name="Home" component={HomeScreen} />
-                    <Stack.Screen name="Details" component={DetailsScreen} />
-                </Stack.Navigator>
+                <Tab.Navigator initialRouteName="Theme">
+                    <Tab.Screen name="Theme" component={ThemeScreen} options={{
+                        tabBarLabel: 'Theme',
+                        tabBarIcon: ({ color }) => (
+                            <MaterialCommunityIcons name="home" color={color} size={26} />
+                        ),
+                    }} />
+                    <Tab.Screen name="Calendar" component={CalendarScreen} options={{
+                        tabBarLabel: 'Calendar',
+                        tabBarIcon: ({ color }) => (
+                            <MaterialCommunityIcons name="calendar" color={color} size={26} />
+                        ),
+                    }} />
+                </Tab.Navigator>
+
             </NavigationContainer>
-            {/*
-            <View style={{...styles.container, backgroundColor: theme.colors.background}}>
-                <ButtonPaper />
-                <ThemeSwitch />
-            </View>
-            */}
         </PaperProvider>
 
     );

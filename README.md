@@ -680,8 +680,6 @@ Parfait ! Il ne reste plus qu'à importer le composant dans `Main.js` :
 ```
 import { StyleSheet, View } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
-import ThemeSwitch from '../theme/SwitchPaper'
-import ButtonPaper from '../button/ButtonPaper'
 import { useSelector } from 'react-redux'
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -708,19 +706,16 @@ function Main() {
             <NavigationContainer theme={theme}>
                 <Stack.Navigator 
                     initialRouteName="Home"
-                    screenOptions={{
+                    screenOptions=
+                    { 
+                      {
                         header: (props) => <Header {... props} />
-                    }}>
+                      } 
+                    }>
                     <Stack.Screen name="Home" component={HomeScreen} />
                     <Stack.Screen name="Details" component={DetailsScreen} />
                 </Stack.Navigator>
             </NavigationContainer>
-            {/*
-            <View style={{...styles.container, backgroundColor: theme.colors.background}}>
-                <ButtonPaper />
-                <ThemeSwitch />
-            </View>
-            */}
         </PaperProvider>
 
     );
@@ -729,5 +724,221 @@ function Main() {
 export default Main;
 ```
 
-Excellent !! Le code fonctionne à merveille :) CQFD ! **Nous avons maintenant une application navigable avec des thèmes customizables à souhait et qui respecte les conseils de design de Material Design 3 !**
+Excellent !! Le code fonctionne à merveille :)
+
+**Nous avons maintenant une application navigable avec des thèmes customizables à souhait et qui respecte les conseils de design de Material Design 3 !**
+
+## Customiser une librairie
+
+Chouette tutoriel : https://blog.logrocket.com/create-customized-shareable-calendars-react-native/
+
+Le problème avec Material Design est que toutes les librairies n'utilisent pas ce standard. Voyons comment utiliser une libraire étrangère et la styliser avec Paper. Nous allons utiliser la librairie **react-native-calendars** (https://github.com/wix/react-native-calendars ). L'installation se fait comme suit :
+
+```
+$ npm install react-native-calendars
+```
+
+Bien maintenant, ajoutons un Tab menu à notre application. L'état actuel de l'application sera enveloppée dans l'onglet **Theming** tandis que le calendrier sera dans le menu **Calendar** :
+
+```
+$ npm install @react-navigation/material-bottom-tabs
+
+$ npm install MaterialCommunityIcons
+
+$ npm install material-bottom-tab
+```
+
+Ensuite créons un petit composant `src/screens/CalendarScreen.js` :
+
+```
+import {View, Text, StyleSheet} from 'react-native'
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    }
+}
+)
+
+function CalendarScreen() {
+    return (
+        <View style={styles.container}>
+            <Text>Hello</Text>
+        </View>
+    )
+}
+
+export default CalendarScreen;
+```
+
+Ensuite, modifions le fichier `Main.js` :
+
+```
+import { Provider as PaperProvider } from 'react-native-paper';
+import { useSelector } from 'react-redux'
+import { NavigationContainer } from '@react-navigation/native';
+import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
+import ThemeScreen from '../../screens/ThemingScreens';
+import CalendarScreen from '../../screens/CalendarScreen';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+
+const Tab = createMaterialBottomTabNavigator();
+
+function Main() {
+
+    const theme = useSelector(state => state.theme)
+
+    return (
+        <PaperProvider theme={theme}>
+            <NavigationContainer theme={theme}>
+                <Tab.Navigator initialRouteName="Theme">
+                    <Tab.Screen name="Theme" component={ThemeScreen} options={ {
+                        tabBarLabel: 'Theme',
+                        tabBarIcon: ({ color }) => (
+                            <MaterialCommunityIcons name="home" color={color} size={26} />
+                        ),
+                    } } />
+                    <Tab.Screen name="Calendar" component={CalendarScreen} options={ {
+                        tabBarLabel: 'Calendar',
+                        tabBarIcon: ({ color }) => (
+                            <MaterialCommunityIcons name="calendar" color={color} size={26} />
+                        ),
+                    } } />
+                </Tab.Navigator>
+
+            </NavigationContainer>
+        </PaperProvider>
+
+    );
+}
+
+export default Main;
+```
+
+Bien ! Les menus de navigation imbriqués fonctionnent :) Créons un nouveau composant `src/features/calendar/Calendar.js` qui contiendra le code du calendrier :
+
+```
+$ mkdir src/features/calendar
+
+$ touch src/features/calendar/Calendar.js
+```
+
+et passons-y le code suivant :
+
+```
+import { View, Text, StyleSheet } from 'react-native'
+import { Calendar } from 'react-native-calendars';
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        color: 'red'
+    }
+}
+)
+
+function CalendarComponent() {
+    return (
+        <View style={styles.container}>
+            <Calendar
+                // Initially visible month. Default = Date()
+
+                // Handler which gets executed on day press. Default = undefined
+                onDayPress={day => {
+                    console.log('selected day', day);
+                } }
+                // Month format in calendar title. Formatting values: http://arshaw.com/xdate/#Formatting
+                monthFormat={'yyyy MMMM'}
+                // Handler which gets executed when visible month changes in calendar. Default = undefined
+                onMonthChange={month => {
+                    console.log('month changed', month);
+                } }
+                // Do not show days of other months in month page. Default = false
+                hideExtraDays={true}
+                // If hideArrows=false and hideExtraDays=false do not swich month when tapping on greyed out
+                // day from another month that is visible in calendar page. Default = false
+                disableMonthChange={true}
+                // If firstDay=1 week starts from Monday. Note that dayNames and dayNamesShort should still start from Sunday.
+                firstDay={1}
+            />
+        </View>
+    )
+}
+
+export default CalendarComponent;
+```
+
+`CalendarScreen.js` devient :
+
+```
+import CalendarComponent from "../features/calendar/Calendar";
+
+function CalendarScreen() {
+    return (
+        <CalendarComponent />
+    )
+}
+
+export default CalendarScreen;
+```
+
+Maintenant, changeons les **prop** `theme` (et si besoin, `style`) du calendrier en lui appliquant les valeurs de `theme` passé par dans le store Redux.
+
+```
+import { SafeAreaView } from 'react-native'
+import { Calendar } from 'react-native-calendars'
+import { useSelector } from 'react-redux'
+
+
+function CalendarComponent() {
+
+    const theme = useSelector(state => state.theme)
+
+    return (
+        <SafeAreaView>
+            <Calendar
+                // needed to re-render when theme changed
+                key={theme.dark}
+                // Handler which gets executed on day press. Default = undefined
+                onDayPress={day => {
+                    console.log('selected day', day);
+                }}
+                // Month format in calendar title. Formatting values: http://arshaw.com/xdate/#Formatting
+                monthFormat={'yyyy MMMM'}
+                // Handler which gets executed when visible month changes in calendar. Default = undefined
+                onMonthChange={month => {
+                    console.log('month changed', month);
+                }}
+                // Do not show days of other months in month page. Default = false
+                hideExtraDays={true}
+                // If hideArrows=false and hideExtraDays=false do not swich month when tapping on greyed out
+                // day from another month that is visible in calendar page. Default = false
+                disableMonthChange={true}
+                // If firstDay=1 week starts from Monday. Note that dayNames and dayNamesShort should still start from Sunday.
+                firstDay={1}
+                theme={{
+                    calendarBackground: theme.colors.background,
+                    dayTextColor: theme.colors.text,
+                    textDisabledColor: theme.colors.text,
+                    monthTextColor: theme.colors.text,
+                    arrowColor: theme.colors.tertiary,
+                    todayTextColor: theme.colors.error,
+                  }}
+            />
+        </SafeAreaView>
+    )
+}
+
+export default CalendarComponent;
+```
+
+Problème avec le thème : https://github.com/wix/react-native-calendars/issues/982#issuecomment-582526267 & https://github.com/wix/react-native-calendars/issues/1209
+
+Une liste des options pour le theme est disponible ici : https://github.com/wix/react-native-calendars/blob/master/src/types.ts
+
+Le format des dates est bien expliqué dans ce tutoriel : http://arshaw.com/xdate/#Formatting
 

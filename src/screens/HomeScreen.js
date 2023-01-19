@@ -1,5 +1,5 @@
 import { TouchableOpacity } from 'react-native';
-import { Card, Text } from 'react-native-paper';
+import { Card, Text, View } from 'react-native-paper';
 
 const title = "Titre 1"
 

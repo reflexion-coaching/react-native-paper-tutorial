@@ -2,6 +2,8 @@
 
 **EN COURS**
 
+Erreur (invariant) avec React Navigation : https://github.com/facebook/react-native/issues/32952
+
 ## Installation : React Native
 
 
@@ -905,14 +907,15 @@ function CalendarComponent() {
                 key={theme.dark}
                 // Handler which gets executed on day press. Default = undefined
                 onDayPress={day => {
-                    console.log('selected day', day);
-                }}
+                    alert("Date selected " + day.dateString);
+
+                } }
                 // Month format in calendar title. Formatting values: http://arshaw.com/xdate/#Formatting
                 monthFormat={'yyyy MMMM'}
                 // Handler which gets executed when visible month changes in calendar. Default = undefined
                 onMonthChange={month => {
                     console.log('month changed', month);
-                }}
+                } }
                 // Do not show days of other months in month page. Default = false
                 hideExtraDays={true}
                 // If hideArrows=false and hideExtraDays=false do not swich month when tapping on greyed out
@@ -920,14 +923,14 @@ function CalendarComponent() {
                 disableMonthChange={true}
                 // If firstDay=1 week starts from Monday. Note that dayNames and dayNamesShort should still start from Sunday.
                 firstDay={1}
-                theme={{
+                theme={ {
                     calendarBackground: theme.colors.background,
                     dayTextColor: theme.colors.text,
                     textDisabledColor: theme.colors.text,
                     monthTextColor: theme.colors.text,
                     arrowColor: theme.colors.tertiary,
                     todayTextColor: theme.colors.error,
-                  }}
+                  } }
             />
         </SafeAreaView>
     )
@@ -936,9 +939,137 @@ function CalendarComponent() {
 export default CalendarComponent;
 ```
 
-Problème avec le thème : https://github.com/wix/react-native-calendars/issues/982#issuecomment-582526267 & https://github.com/wix/react-native-calendars/issues/1209
+Impeccable ! Nous pouvons customiser le thème du calendrier en suivant le thème de Paper. Attention, cependant, plusieurs problèmes ont été soulevés sur le GitHub de **react-native-calendars** : https://github.com/wix/react-native-calendars/issues/982#issuecomment-582526267 & https://github.com/wix/react-native-calendars/issues/1209
 
 Une liste des options pour le theme est disponible ici : https://github.com/wix/react-native-calendars/blob/master/src/types.ts
 
 Le format des dates est bien expliqué dans ce tutoriel : http://arshaw.com/xdate/#Formatting
 
+## Graphique
+
+Après beaucoup d'essais, essayons la librairie **victory** dont voici le lien GitHub : https://github.com/FormidableLabs/victory. La documentation est très bien faite : https://formidable.com/open-source/victory/docs/native
+
+```
+$ npm install victory-native
+
+$ npm install react-native-svg
+```
+
+Créons deux nouveaux fichiers `src/screens/GraphScreen.js` et `src/features/graphs/LinePlotTest.js`. Le contenu de `GraphScreen.js` est le suivant :
+
+```
+import { SafeAreaView, StyleSheet } from 'react-native'
+import LinePlot from "../features/graphs/LinePlotTest"
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+    }
+});
+
+function GraphScreen() {
+    return (
+        <SafeAreaView style={styles.container}>
+            <LinePlot />
+        </SafeAreaView>
+    )
+}
+
+export default GraphScreen;
+```
+
+Celui de `LinePlotTest.js` :
+
+```
+import { useSelector } from 'react-redux'
+import { VictoryChart, VictoryLine, VictoryTheme } from "victory-native";
+
+
+function LinePlot() {
+
+    //const theme = useSelector(state => state.theme)
+
+    return (
+        <VictoryChart
+            theme={VictoryTheme.material}
+        >
+            <VictoryLine
+                style={ {
+                    data: { stroke: "#c43a31" },
+                    parent: { border: "1px solid #ccc" }
+                } }
+                data={[
+                    { x: 1, y: 2 },
+                    { x: 2, y: 3 },
+                    { x: 3, y: 5 },
+                    { x: 4, y: 4 },
+                    { x: 5, y: 7 }
+                ]}
+            />
+        </VictoryChart>
+    );
+}
+
+export default LinePlot;
+```
+
+et n'oublions pas d'ajouter le nouvel écran à la navigation dans `Main.js`:
+
+```
+import * as React from 'react';
+import { Provider as PaperProvider } from 'react-native-paper';
+import { useSelector } from 'react-redux'
+import { NavigationContainer } from '@react-navigation/native';
+import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
+import ThemeScreen from '../../screens/ThemingScreens';
+import CalendarScreen from '../../screens/CalendarScreen';
+import GraphScreen from '../../screens/GraphScreen';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+
+const Tab = createMaterialBottomTabNavigator();
+
+function Main() {
+
+    const theme = useSelector(state => state.theme)
+
+    return (
+        <PaperProvider theme={theme}>
+            <NavigationContainer theme={theme}>
+                <Tab.Navigator initialRouteName="Theme">
+                    <Tab.Screen name="Theme" component={ThemeScreen} options={ {
+                        tabBarLabel: 'Theme',
+                        tabBarIcon: ({ color }) => (
+                            <MaterialCommunityIcons name="home" color={color} size={26} />
+                        ),
+                    } } />
+                    <Tab.Screen name="Calendar" component={CalendarScreen} options={ {
+                        tabBarLabel: 'Calendar',
+                        tabBarIcon: ({ color }) => (
+                            <MaterialCommunityIcons name="calendar" color={color} size={26} />
+                        ),
+                    } } />
+                    <Tab.Screen name="Graphs" component={GraphScreen} options={ {
+                        tabBarLabel: 'Graphs',
+                        tabBarIcon: ({ color }) => (
+                            <MaterialCommunityIcons name="graph" color={color} size={26} />
+                        ),
+                    } } />
+                </Tab.Navigator>
+
+            </NavigationContainer>
+        </PaperProvider>
+
+    );
+}
+
+export default Main;
+```
+
+Excellent ! Il ne reste plus qu'à modifier le thème selon la documentation : https://formidable.com/open-source/victory/guides/themes/.
+
+
+Metro bloqué : https://github.com/expo/expo-cli/issues/278
+
+https://docs.expo.dev/troubleshooting/clear-cache-macos-linux/

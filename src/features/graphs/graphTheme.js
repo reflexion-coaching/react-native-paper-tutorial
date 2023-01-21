@@ -1,7 +1,4 @@
-import { VictoryTheme } from "victory-native";
-
 function GraphTheme(themeFromRedux) {
-
 
     // Colors
     const yellow200 = themeFromRedux.colors.primary;
@@ -287,42 +284,6 @@ function GraphTheme(themeFromRedux) {
             baseProps
         )
     };
-
-    console.log(theme)
-
-
-
-
-
-
-
-
-
-
-    const customTheme = {
-        ...VictoryTheme.material,
-        axis: {
-            ...VictoryTheme.material.axis,
-            style: {
-                ...VictoryTheme.material.axis.style,
-                axis: {
-                    ...VictoryTheme.material.axis.style.axis,
-                    stroke: themeFromRedux.colors.primary,
-                }
-            }
-        },
-        line: {
-            ...VictoryTheme.material.line,
-            style: {
-                ...VictoryTheme.material.line.style,
-                data: {
-                    ...VictoryTheme.material.axis.style.data,
-                    stroke: themeFromRedux.colors.primary,
-                }
-            }
-        }
-    }
-    console.log(customTheme)
 
     return theme
 }

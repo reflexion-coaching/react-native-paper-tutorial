@@ -397,7 +397,7 @@ Pour le moment, nous devons passer la couleur du theme en fond ... à vérifier 
 
 ## Fonts
 
-React Native Paper autorise les développeurs à modifier la polive d'écriture. Le lien vers la documentation sur la police d'écriture est : https://callstack.github.io/react-native-paper/fonts.html
+React Native Paper autorise les développeurs à modifier la police d'écriture. Le lien vers la documentation sur la police d'écriture est : https://callstack.github.io/react-native-paper/fonts.html
 
 La documentation officielle préconise l'utilisation de la fonction `configureFonts` afin de modifier la police d'un niveau d'écriture. Paper sépare les polices en plusieurs niveaux d'écriture : *labelLarge, bodySmall, titleSmall, ...*. Cependant, il semblerait que Redux ne supporte pas cette fonction car cette dernière casse la règle d'immutabilité chère à Redux (https://daveceddia.com/react-redux-immutability-guide/). J'ai posé la question sur stackoverflow (https://stackoverflow.com/questions/75112911/react-native-paper-redux-toolkit-redux-doesnt-track-change-in-fonts-between) mais actuellement, personne n'y a répondu. 
 
@@ -447,13 +447,13 @@ export default themeSlice.reducer
 
 Super ! Le code fonctionne : la taille du label *Press me* est plus petite avec le dark theme que le light theme. 
 
+Le thème de Paper a été simplifié pour revenir au thème de base. De cette façon, il est plus facile de montrer les changements de police.
+
 ## React Navigation 
 
 Pour contrôler la navigation à travers l'application, React Native Paper recommande l'utilisation de la librairie React Navigation. La documentation propose deux tutoriels d'explications. Adaptons les deux à notre exemple.
 
-### Theming with React Navigation
-
-Le lien vers ce tutoriel est : https://callstack.github.io/react-native-paper/theming-with-react-navigation.html
+Le lien vers le premier tutoriel est : https://callstack.github.io/react-native-paper/theming-with-react-navigation.html
 
 L'objectif est de combiner React Paper et Navigation pour offrir une application navigable avec plusieurs thèmes :) 
 
@@ -730,7 +730,7 @@ Excellent !! Le code fonctionne à merveille :)
 
 **Nous avons maintenant une application navigable avec des thèmes customizables à souhait et qui respecte les conseils de design de Material Design 3 !**
 
-## Customiser une librairie
+## Customiser un calendrier
 
 Chouette tutoriel : https://blog.logrocket.com/create-customized-shareable-calendars-react-native/
 
@@ -773,6 +773,34 @@ function CalendarScreen() {
 }
 
 export default CalendarScreen;
+```
+
+et un composant `ThemingScreens.js` qui contient le stack navigateur imbriqué pour la démonstration du changement de thème :
+
+```
+import * as React from 'react';
+import { createStackNavigator } from '@react-navigation/stack';
+import HomeScreen from './HomeScreen';
+import DetailsScreen from './DetailsScreens';
+import Header from '../header/Header';
+
+function ThemeScreen() {
+
+    const Stack = createStackNavigator();
+
+    return (
+        <Stack.Navigator
+            initialRouteName="Home"
+            screenOptions={ {
+                header: (props) => <Header {...props} />
+            } }>
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="Details" component={DetailsScreen} />
+        </Stack.Navigator>
+    )
+}
+
+export default ThemeScreen;
 ```
 
 Ensuite, modifions le fichier `Main.js` :
@@ -1067,9 +1095,336 @@ function Main() {
 export default Main;
 ```
 
-Excellent ! Il ne reste plus qu'à modifier le thème selon la documentation : https://formidable.com/open-source/victory/guides/themes/.
+Excellent ! Il ne reste plus qu'à modifier le thème selon la documentation : https://formidable.com/open-source/victory/guides/themes/. Créons le fichier `src/features/graphs/graphTheme.js` qui contiendra une fonction renvoyant le thème du graphique :
+
+```
+function GraphTheme(themeFromRedux) {
+
+    // Colors
+    const yellow200 = themeFromRedux.colors.primary;
+    const deepOrange600 = themeFromRedux.colors.secondary;
+    const lime300 = themeFromRedux.colors.tertiary;
+    const lightGreen500 = themeFromRedux.colors.primary;;
+    const teal700 = themeFromRedux.colors.primary;;
+    const cyan900 = themeFromRedux.colors.primary;;
+    const colors = [
+        deepOrange600,
+        yellow200,
+        lime300,
+        lightGreen500,
+        teal700,
+        cyan900
+    ];
+    const blueGrey50 = themeFromRedux.colors.primary;;
+    const blueGrey300 = themeFromRedux.colors.primary;;
+    const blueGrey700 = themeFromRedux.colors.primary;;
+    const grey900 = themeFromRedux.colors.primary;;
+
+    // Typography
+    const sansSerif = "'Helvetica Neue', 'Helvetica', sans-serif";
+    const letterSpacing = "normal";
+    const fontSize = 12;
+
+    // Layout
+    const padding = 8;
+    const baseProps = {
+        width: 350,
+        height: 350,
+        padding: 50
+    };
+
+    // * Labels
+    const baseLabelStyles = {
+        fontFamily: sansSerif,
+        fontSize,
+        letterSpacing,
+        padding,
+        fill: blueGrey700,
+        stroke: "transparent",
+        strokeWidth: 0
+    };
+
+    const centeredLabelStyles = Object.assign({ textAnchor: "middle" }, baseLabelStyles);
+
+    // Strokes
+    const strokeDasharray = "10, 5";
+    const strokeLinecap = "round";
+    const strokeLinejoin = "round";
+
+    // Put it all together...
+    const theme = {
+        area: Object.assign(
+            {
+                style: {
+                    data: {
+                        fill: grey900
+                    },
+                    labels: baseLabelStyles
+                }
+            },
+            baseProps
+        ),
+        axis: Object.assign(
+            {
+                style: {
+                    axis: {
+                        fill: "transparent",
+                        stroke: blueGrey300,
+                        strokeWidth: 2,
+                        strokeLinecap,
+                        strokeLinejoin
+                    },
+                    axisLabel: Object.assign({}, centeredLabelStyles, {
+                        padding,
+                        stroke: "transparent"
+                    }),
+                    grid: {
+                        fill: "none",
+                        stroke: blueGrey50,
+                        strokeDasharray,
+                        strokeLinecap,
+                        strokeLinejoin,
+                        pointerEvents: "painted"
+                    },
+                    ticks: {
+                        fill: "transparent",
+                        size: 5,
+                        stroke: blueGrey300,
+                        strokeWidth: 1,
+                        strokeLinecap,
+                        strokeLinejoin
+                    },
+                    tickLabels: Object.assign({}, baseLabelStyles, {
+                        fill: blueGrey700
+                    })
+                }
+            },
+            baseProps
+        ),
+        polarDependentAxis: Object.assign({
+            style: {
+                ticks: {
+                    fill: "transparent",
+                    size: 1,
+                    stroke: "transparent"
+                }
+            }
+        }),
+        bar: Object.assign(
+            {
+                style: {
+                    data: {
+                        fill: blueGrey700,
+                        padding,
+                        strokeWidth: 0
+                    },
+                    labels: baseLabelStyles
+                }
+            },
+            baseProps
+        ),
+        boxplot: Object.assign(
+            {
+                style: {
+                    max: { padding, stroke: blueGrey700, strokeWidth: 1 },
+                    maxLabels: Object.assign({}, baseLabelStyles, { padding: 3 }),
+                    median: { padding, stroke: blueGrey700, strokeWidth: 1 },
+                    medianLabels: Object.assign({}, baseLabelStyles, { padding: 3 }),
+                    min: { padding, stroke: blueGrey700, strokeWidth: 1 },
+                    minLabels: Object.assign({}, baseLabelStyles, { padding: 3 }),
+                    q1: { padding, fill: blueGrey700 },
+                    q1Labels: Object.assign({}, baseLabelStyles, { padding: 3 }),
+                    q3: { padding, fill: blueGrey700 },
+                    q3Labels: Object.assign({}, baseLabelStyles, { padding: 3 })
+                },
+                boxWidth: 20
+            },
+            baseProps
+        ),
+        candlestick: Object.assign(
+            {
+                style: {
+                    data: {
+                        stroke: blueGrey700
+                    },
+                    labels: Object.assign({}, baseLabelStyles, { padding: 5 })
+                },
+                candleColors: {
+                    positive: "#ffffff",
+                    negative: blueGrey700
+                }
+            },
+            baseProps
+        ),
+        chart: baseProps,
+        errorbar: Object.assign(
+            {
+                borderWidth: 8,
+                style: {
+                    data: {
+                        fill: "transparent",
+                        opacity: 1,
+                        stroke: blueGrey700,
+                        strokeWidth: 2
+                    },
+                    labels: baseLabelStyles
+                }
+            },
+            baseProps
+        ),
+        group: Object.assign(
+            {
+                colorScale: colors
+            },
+            baseProps
+        ),
+        histogram: Object.assign(
+            {
+                style: {
+                    data: {
+                        fill: blueGrey700,
+                        stroke: grey900,
+                        strokeWidth: 2
+                    },
+                    labels: baseLabelStyles
+                }
+            },
+            baseProps
+        ),
+        legend: {
+            colorScale: colors,
+            gutter: 10,
+            orientation: "vertical",
+            titleOrientation: "top",
+            style: {
+                data: {
+                    type: "circle"
+                },
+                labels: baseLabelStyles,
+                title: Object.assign({}, baseLabelStyles, { padding: 5 })
+            }
+        },
+        line: Object.assign(
+            {
+                style: {
+                    data: {
+                        fill: "transparent",
+                        opacity: 1,
+                        stroke: blueGrey700,
+                        strokeWidth: 2
+                    },
+                    labels: baseLabelStyles
+                }
+            },
+            baseProps
+        ),
+        pie: Object.assign(
+            {
+                colorScale: colors,
+                style: {
+                    data: {
+                        padding,
+                        stroke: blueGrey50,
+                        strokeWidth: 1
+                    },
+                    labels: Object.assign({}, baseLabelStyles, { padding: 20 })
+                }
+            },
+            baseProps
+        ),
+        scatter: Object.assign(
+            {
+                style: {
+                    data: {
+                        fill: blueGrey700,
+                        opacity: 1,
+                        stroke: "transparent",
+                        strokeWidth: 0
+                    },
+                    labels: baseLabelStyles
+                }
+            },
+            baseProps
+        ),
+        stack: Object.assign(
+            {
+                colorScale: colors
+            },
+            baseProps
+        ),
+        tooltip: {
+            style: Object.assign({}, baseLabelStyles, { padding: 0, pointerEvents: "none" }),
+            flyoutStyle: {
+                stroke: grey900,
+                strokeWidth: 1,
+                fill: "#f0f0f0",
+                pointerEvents: "none"
+            },
+            flyoutPadding: 5,
+            cornerRadius: 5,
+            pointerLength: 10
+        },
+        voronoi: Object.assign(
+            {
+                style: {
+                    data: {
+                        fill: "transparent",
+                        stroke: "transparent",
+                        strokeWidth: 0
+                    },
+                    labels: Object.assign({}, baseLabelStyles, { padding: 5, pointerEvents: "none" }),
+                    flyout: {
+                        stroke: grey900,
+                        strokeWidth: 1,
+                        fill: "#f0f0f0",
+                        pointerEvents: "none"
+                    }
+                }
+            },
+            baseProps
+        )
+    };
+
+    return theme
+}
+
+export default GraphTheme;
+```
+
+Cette fonction prend en argument le thème stocké dans Redux. Ainsi, nous n'avons qu'à passer ce thème à la fonction dans `LinePlotTest.js` :
+
+```
+import { useSelector } from 'react-redux'
+import { VictoryChart, VictoryLine, VictoryTheme } from "victory-native";
+import GraphTheme from './graphTheme';
 
 
-Metro bloqué : https://github.com/expo/expo-cli/issues/278
+function LinePlot() {
 
-https://docs.expo.dev/troubleshooting/clear-cache-macos-linux/
+    const theme = useSelector(state => state.theme)
+
+    const themeTest = GraphTheme(theme)
+
+    return (
+        <VictoryChart
+            theme={themeTest}
+        >
+            <VictoryLine
+                data={[
+                    { x: 1, y: 2 },
+                    { x: 2, y: 3 },
+                    { x: 3, y: 5 },
+                    { x: 4, y: 4 },
+                    { x: 5, y: 7 }
+                ]}
+            />
+        </VictoryChart>
+    );
+}
+
+export default LinePlot;
+```
+
+CQFD :) Le graphique est customizé aux couleurs de notre thème !
+
+Arrêtons-nous ici pour l'instant ...
